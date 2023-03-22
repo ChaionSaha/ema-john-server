@@ -1,13 +1,14 @@
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const express = require("express");
-const cors = require("cors");
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const express = require('express');
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 
 //middlewares
 app.use(cors());
 app.use(express.json());
-require("dotenv").config();
+require('dotenv').config();
 
 const port = process.env.PORT || 4000;
 
@@ -23,9 +24,22 @@ const client = new MongoClient(uri, {
 async function run() {
 	try {
 		await client.connect();
-		const productsCollection = client.db("emaJohn").collection("products");
+		const productsCollection = client.db('emaJohn').collection('products');
 
-		app.get("/products", async (req, res) => {
+		////////////////////////////////////////////////
+		///// Login key
+		app.get('/login', async (req, res) => {
+			const body = req.body;
+			const token = jwt.sign(body, process.env.SECRET_KEY, {
+				expiresIn: '1d',
+			});
+
+			console.log(token);
+			res.send(token);
+		});
+		/////////////////////////////////////////////////
+		///// Products
+		app.get('/products', async (req, res) => {
 			const page = +req.query.page;
 			const size = +req.query.size;
 			const query = {};
@@ -44,12 +58,12 @@ async function run() {
 			res.send(result);
 		});
 
-		app.get("/productsCount", async (req, res) => {
+		app.get('/productsCount', async (req, res) => {
 			const count = await productsCollection.estimatedDocumentCount();
 			res.send({ count });
 		});
 
-		app.post("/productsbykeys", async (req, res) => {
+		app.post('/productsbykeys', async (req, res) => {
 			const keys = req.body;
 			const ids = keys.map((key) => new ObjectId(key));
 			const query = { _id: { $in: ids } };
@@ -65,8 +79,8 @@ async function run() {
 
 run().catch(console.dir);
 
-app.get("/", (req, res) => {
-	res.send("server is running");
+app.get('/', (req, res) => {
+	res.send('server is running');
 });
 
 app.listen(port, () => {
