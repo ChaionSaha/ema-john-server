@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 require('dotenv').config();
 
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 5000;
 
 // MongoDB configs
 
@@ -28,14 +28,17 @@ async function run() {
 
 		////////////////////////////////////////////////
 		///// Login key
-		app.get('/login', async (req, res) => {
+		app.post('/login', async (req, res) => {
 			const body = req.body;
-			const token = jwt.sign(body, process.env.SECRET_KEY, {
-				expiresIn: '1d',
-			});
-
-			console.log(token);
-			res.send(token);
+			console.log(body);
+			if (!body) return res.status(400).send('Bad request');
+			else {
+				const token = jwt.sign(body, process.env.SECRET_KEY, {
+					expiresIn: '1d',
+				});
+				console.log(token);
+				res.send(token);
+			}
 		});
 		/////////////////////////////////////////////////
 		///// Products
